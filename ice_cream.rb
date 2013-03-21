@@ -96,10 +96,20 @@ def search
   location, keyword, radius = input[0], input[1], input[2]
   nearby_places = get_nearby_places(location, keyword, radius)
   display_results(nearby_places)
+  puts "For what choice do you want directions for?"
+  chosen_place = gets.chomp.to_i-1
+
 end
 
 def display_results(places)
-  places.each do |place|
+  places.each_with_index do |place, i|
+    info = get_place_info(place)
+    puts "Choice: #{i+1}"
+    puts "Name: #{info[0]}"
+    puts "Address: #{info[1]}"
+    puts "Rating: #{info[2]}"
+    puts "Open?: #{info[3]}"
+    puts ""
   end
 end
 
