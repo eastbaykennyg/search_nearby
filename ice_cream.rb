@@ -5,7 +5,7 @@ require "nokogiri"
 
 #Find current location
 
-http://maps.googleapis.com/maps/api/geocode/json?address=160+folsom+94105&sensor=false
+#http://maps.googleapis.com/maps/api/geocode/json?address=160+folsom+94105&sensor=false
 #returns a json response
 
 
@@ -13,20 +13,22 @@ http://maps.googleapis.com/maps/api/geocode/json?address=160+folsom+94105&sensor
 
 # !!API KEY!!: AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k
 
-https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k&location=37.78956840,-122.39189480&radius=500&keyword=ice+cream&sensor=false
+#https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k&location=37.78956840,-122.39189480&radius=500&keyword=ice+cream&sensor=false
 #
 
 
 #Directions to location
 
-https://maps.googleapis.com/maps/api/directions/json?origin=160+folsom+94105&destination=37.7955440,-122.3934480&sensor=false
+#https://maps.googleapis.com/maps/api/directions/json?origin=160+folsom+94105&destination=37.7955440,-122.3934480&sensor=false
 
-def format_location(location)
-  formatted_loc = location.gsub(" ", "+")
+#helper_function
+def format_input(input)
+  formatted_input = input.gsub(" ", "+")
 end
 
+#helper_function
 def get_location(location)
-
+  location = format_input(location)
   url = "http://maps.googleapis.com/maps/api/geocode/json?address=#{location}&sensor=false"
   response = RestClient.get(url)
   output = JSON.parse(response)
@@ -35,6 +37,45 @@ def get_location(location)
   "#{lat},#{lng}"
 end
 
+#helper_function #pass in non formatted inputs
+def get_nearby_places(location, keyword, radius)
+  keyw = format_input(keyword)
+  p keyw
+  location =  get_location(location)
+  p location
+  url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k&location=#{location}&radius=#{radius}&keyword=#{keyw}&sensor=false"
+  p url
+  response = RestClient.get(url)
+  output = JSON.parse(response)
+  place1 = output["results"][0]
+  place2 = output["results"][1]
+  place3 = output["results"][2]
+  [place1, place2, place3]
+end
 
+#helper_function
+def get_place_info(place)
+  name = place["name"]
+  address = place["vicinity"]
+  rating = place["rating"]
+  is_open = place["opening_hours"]["open_now"]
+  [name, address, rating, is_open]
+end
+
+def get_user_info
+  puts "What is your current location"
+  location = gets.chomp
+  puts "What do you want to search for?"
+  keyword = gets.chomp
+  puts "What is your radius? (meters)"
+  radius = gets.chomp
+  [location, keyword, radius]
+end
+
+def search
+  input = get_user_info
+  location, keyword, radius = input[0], input[1], input[2]
+  nearby_places = get_nearby_places(location, keyword, radius)
+end
 
 
