@@ -3,31 +3,12 @@ require "rest-client"
 require "json"
 require "nokogiri"
 require 'addressable/uri'
-#Find current location
 
-#http://maps.googleapis.com/maps/api/geocode/json?address=160+folsom+94105&sensor=false
-#http://maps.googleapis.com/maps/api/geocode/json?location=160%2BFolsom%2BStreet%2B94105&sensor=false
-#returns a json response
-
-
-#search nearby places
-
-# !!API KEY!!: AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k
-
-#https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyBvgkKR3NrJVyzNRdvMLxWeqDJuNmxUe3k&location=37.78956840,-122.39189480&radius=500&keyword=ice+cream&sensor=false
-#
-
-
-#Directions to location
-
-#https://maps.googleapis.com/maps/api/directions/json?origin=160+folsom+94105&destination=37.7955440,-122.3934480&sensor=false
-
-#helper_function
 def format_input(input)
   formatted_input = input.gsub(" ", "+")
 end
 
-#helper_function
+
 def get_location(location)
   location = format_input(location)
 
@@ -47,7 +28,7 @@ def get_location(location)
   "#{lat},#{lng}"
 end
 
-#helper_function #pass in non formatted inputs
+
 def get_nearby_places(location, keyword, radius)
   keyw = format_input(keyword)
   location =  get_location(location)
@@ -72,7 +53,7 @@ def get_nearby_places(location, keyword, radius)
   [place1, place2, place3]
 end
 
-#helper_function
+
 def get_place_info(place)
   name = place["name"]
   address = place["vicinity"]
@@ -88,6 +69,7 @@ def get_user_info
   keyword = gets.chomp
   puts "What is your radius? (meters)"
   radius = gets.chomp
+  puts
   [location, keyword, radius]
 end
 
@@ -98,6 +80,8 @@ def search
   display_results(nearby_places)
   puts "For what choice do you want directions for?"
   chosen_place = gets.chomp.to_i-1
+  choice = nearby_places[chosen_place]
+  directions(location, choice)
 
 end
 
@@ -109,8 +93,41 @@ def display_results(places)
     puts "Address: #{info[1]}"
     puts "Rating: #{info[2]}"
     puts "Open?: #{info[3]}"
-    puts ""
+    puts
   end
 end
 
 
+def directions(location, place)
+  location = format_input(location)
+  lat = place["geometry"]["location"]["lat"]
+  lng = place["geometry"]["location"]["lng"]
+
+
+  url = Addressable::URI.new(
+        :scheme => "https",
+        :host => "maps.googleapis.com",
+        :path => "maps/api/directions/json",
+        :query_values => {
+          :origin => location,
+          :destination => "#{lat},#{lng}",
+          :sensor => false
+        }).to_s
+
+  response = RestClient.get(url)
+  output = JSON.parse(response)
+  steps = output["routes"][0]["legs"][0]["steps"]
+
+  puts
+  puts"---------------------------------------------"
+  puts "Walking Directions"
+  puts
+
+  steps.each {|step| puts Nokogiri::HTML(step["html_instructions"]).text }
+  puts
+  puts"---------------------------------------------"
+  nil
+
+end
+
+search
