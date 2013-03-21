@@ -58,31 +58,45 @@ def get_place_info(place)
   name = place["name"]
   address = place["vicinity"]
   rating = place["rating"]
-  is_open = place["opening_hours"]["open_now"]
+  is_open = place["opening_hours"]["open_now"] if place["opening_hours"]
   [name, address, rating, is_open]
 end
 
 def get_user_info
   puts "What is your current location"
   location = gets.chomp
+  puts
   puts "What do you want to search for?"
   keyword = gets.chomp
+  puts
   puts "What is your radius? (meters)"
   radius = gets.chomp
+  puts
+  puts "One moment, please."
   puts
   [location, keyword, radius]
 end
 
 def search
-  input = get_user_info
-  location, keyword, radius = input[0], input[1], input[2]
-  nearby_places = get_nearby_places(location, keyword, radius)
+  begin
+    input = get_user_info
+    location, keyword, radius = input[0], input[1], input[2]
+    nearby_places = get_nearby_places(location, keyword, radius)
+    raise if nearby_places[0].nil?
+  rescue
+    puts
+    puts"---------------------------------------------"
+    puts "No results. Widen your search"
+    puts
+    retry
+  end
+
   display_results(nearby_places)
   puts "For what choice do you want directions for?"
   chosen_place = gets.chomp.to_i-1
   choice = nearby_places[chosen_place]
+  puts "One moment, please."
   directions(location, choice)
-
 end
 
 def display_results(places)
