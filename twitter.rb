@@ -94,6 +94,20 @@ class EndUser < User
     EndUser::access_token.post(url)
   end
 
+  def dm(username, message)
+    #asdasdasdeasd12
+    url = Addressable::URI.new(
+          :scheme => "https",
+          :host => "api.twitter.com",
+          :path => "1.1/direct_messages/new.json",
+          :query_values => {
+            :text => message,
+            :screen_name => username
+          }).to_s
+    EndUser::access_token.post(url)
+
+  end
+
   def self.request_access_token
     # send user to twitter URL to authorize application
     request_token = CONSUMER.get_request_token
