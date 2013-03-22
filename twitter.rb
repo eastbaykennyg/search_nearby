@@ -39,10 +39,12 @@ end
 
 class EndUser < User
 
-  attr_reader :name
+  attr_reader :name, :timeline
 
   def initialize(name)
+
     super()
+    @timeline = user_timeline
     @name = name
   end
 
@@ -54,11 +56,11 @@ class EndUser < User
     # We can serialize token to a file, so that future requests don't need
     # to be reauthorized.
 
-    if File.exist?(token_file)
-      File.open(token_file) { |f| YAML.load(f) }
+    if File.exist?("#{token_file}.token")
+      File.open("#{token_file}.token") { |f| YAML.load(f) }
     else
-      access_token = self.request_access_token #ask
-      File.open(token_file, "w") { |f| YAML.dump(access_token, f) }
+      access_token = request_access_token #ask
+      File.open("#{token_file}.token", "w") { |f| YAML.dump(access_token, f) }
 
       access_token
     end
@@ -77,8 +79,22 @@ class EndUser < User
     @@current_user = EndUser.new(username)
   end
 
+  def tweet(message)
+    raise if message.length > 140
+    #message = message.gsub(" ", "%20").gsub("'","%27").gsub("#", "%23")
 
-  def request_access_token
+    url = Addressable::URI.new(
+          :scheme => "https",
+          :host => "api.twitter.com",
+          :path => "1.1/statuses/update.json",
+          :query_values => {
+            :status => message
+          }).to_s
+          p url
+    EndUser::access_token.post(url)
+  end
+
+  def self.request_access_token
     # send user to twitter URL to authorize application
     request_token = CONSUMER.get_request_token
     authorize_url = request_token.authorize_url
